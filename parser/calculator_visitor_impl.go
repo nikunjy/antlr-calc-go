@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"math"
 	"strconv"
 
@@ -20,22 +19,27 @@ func NewCalculatorVisitorImpl() CalculatorVisitor {
 	}
 }
 
+func (c *CalculatorVisitorImpl) Visit(tree antlr.ParseTree) interface{} {
+	switch val := tree.(type) {
+	case *CalculateContext:
+		return val.Accept(c)
+	case *ToSetVarContext:
+		return val.Accept(c)
+	}
+	return nil
+}
+
 func (c *CalculatorVisitorImpl) VisitPlus(ctx *PlusContext) interface{} {
-	fmt.Println("Came here to visit plus")
 	first := ctx.PlusOrMinus().Accept(c).(float64)
-	fmt.Println("first done")
 	second := ctx.MultOrDiv().Accept(c).(float64)
-	fmt.Println("second done", first, second)
 	return first + second
 }
 
 func (c *CalculatorVisitorImpl) VisitMinus(ctx *MinusContext) interface{} {
-	fmt.Println("Came here to visit minus")
 	return ctx.PlusOrMinus().Accept(c).(float64) - ctx.MultOrDiv().Accept(c).(float64)
 }
 
 func (c *CalculatorVisitorImpl) VisitMultiplication(ctx *MultiplicationContext) interface{} {
-	fmt.Println("Came here to multi")
 	return ctx.MultOrDiv().Accept(c).(float64) * ctx.Pow().Accept(c).(float64)
 }
 
@@ -73,7 +77,6 @@ func (c *CalculatorVisitorImpl) VisitConstantE(ctx *ConstantEContext) interface{
 }
 
 func (c *CalculatorVisitorImpl) VisitDouble(ctx *DoubleContext) interface{} {
-	fmt.Println("Came here to visit double")
 	val, err := strconv.ParseFloat(ctx.DOUBLE().GetText(), 10)
 	if err != nil {
 		panic(err)
@@ -82,7 +85,6 @@ func (c *CalculatorVisitorImpl) VisitDouble(ctx *DoubleContext) interface{} {
 }
 
 func (c *CalculatorVisitorImpl) VisitInt(ctx *IntContext) interface{} {
-	fmt.Println("Came here to visit int")
 	val, err := strconv.ParseFloat(ctx.INT().GetText(), 10)
 	if err != nil {
 		panic(err)
@@ -91,22 +93,18 @@ func (c *CalculatorVisitorImpl) VisitInt(ctx *IntContext) interface{} {
 }
 
 func (c *CalculatorVisitorImpl) VisitVariable(ctx *VariableContext) interface{} {
-	fmt.Println("Got to visit variable")
 	return c.vars[ctx.ID().GetText()]
 }
 
 func (c *CalculatorVisitorImpl) VisitCalculate(ctx *CalculateContext) interface{} {
-	fmt.Println("Came here to visit calculate")
 	return ctx.PlusOrMinus().Accept(c)
 }
 
 func (c *CalculatorVisitorImpl) VisitToAtom(ctx *ToAtomContext) interface{} {
-	fmt.Println("Came here to visit atom")
 	return ctx.Atom().Accept(c)
 }
 
 func (c *CalculatorVisitorImpl) VisitToMultOrDiv(ctx *ToMultOrDivContext) interface{} {
-	fmt.Println("visit to mult or div")
 	return ctx.MultOrDiv().Accept(c)
 }
 
@@ -115,7 +113,8 @@ func (c *CalculatorVisitorImpl) VisitToPow(ctx *ToPowContext) interface{} {
 }
 
 func (c *CalculatorVisitorImpl) VisitToSetVar(ctx *ToSetVarContext) interface{} {
-	return ctx.SetVar().Accept(c)
+	ctx.SetVar().Accept(c)
+	return c.Visit(ctx.Input())
 }
 
 /*

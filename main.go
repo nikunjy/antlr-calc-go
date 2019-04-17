@@ -18,22 +18,5 @@ func main() {
 	p := parser.NewCalculatorParser(tokens)
 	visitor := parser.NewCalculatorVisitorImpl()
 	tree := p.Input()
-	count := 0
-	for {
-
-		switch val := tree.(type) {
-		case *parser.CalculateContext:
-			fmt.Println(val.Accept(visitor))
-			fmt.Println(val.EOF())
-		case *parser.ToSetVarContext:
-			val.Accept(visitor)
-			tree = val.Input()
-		default:
-			return
-		}
-		count++
-		if count > 5 {
-			return
-		}
-	}
+	fmt.Println(visitor.Visit(tree))
 }
